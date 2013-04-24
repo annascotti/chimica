@@ -1,0 +1,371 @@
+#include "chimica.hpp"
+
+using namespace std;
+using namespace gmm;
+
+
+//----------------costruttore vuoto-------------
+
+Kem::Kem(): M_nspecie(0), M_nreazioni(0), M_species(0),M_species_pointer(0) {};
+
+//---------------costruttore------------------
+
+Kem::Kem(string nomefile)
+{
+	M_nomefile=nomefile;
+	M_nspecie=0;
+	
+	this->setSpecies();  // legge la parte iniziale del file e capisce chi sono le specie
+
+	this->setCini();  //setta le CI
+	
+	M_nreazioni=this->contaReazioni(nomefile);  //conta quante reazioni	
+	
+	vector<React> reazioni;  //crea il vettore delle reazioni
+
+	for (size_type i=0; i<M_nreazioni;++i)
+	{   //e inizia a riempirlo
+
+		stringstream ss;
+		ss<<"REACTION  "<<i+1;
+		React nuova(this->buildReact(nomefile, ss.str(),i));  //costruisce l'i+1esima
+		M_reazioni.push_back(nuova);   
+	}
+
+	this->setGlobalIndeces(); 
+	
+}
+
+//distruttore
+Kem::~Kem() {};
+
+//-------------------------legge le specie---------------
+void Kem::setSpecies(){
+
+	ifstream myfile;
+	myfile.open(M_nomefile.c_str());
+	string line;
+	string line2;
+	line2.assign("RELATIVE ");  //è il punto del file in cui finisce l'elenco delle specie
+	getline (myfile,line);    //le prime tre linee del file non mi servono
+	getline (myfile,line); 
+	getline (myfile,line);
+	int flag(0);
+	while(myfile.good() && flag==0){
+	
+		getline (myfile,line);
+		
+		if (strncmp(line.c_str(),line2.c_str(),line2.size())==0){
+			flag=1;   //condizione di uscita			
+		}
+		else{
+			string nome;
+			nome.append(line.c_str(),2,5);
+			int found=nome.find_last_of("ABCDEFGHILMNOPQRSTUVZX123456789");
+			nome.resize(found+1);   //estraggo dalla linea letta il nome della specie
+			Species nuova(nome);    //creo la specie
+			M_species.push_back(nuova);  //la infilo nei vettori
+			M_species_pointer.push_back(NULL);  
+			indexMap[nome]=NULL;
+		}
+	}
+	
+//-------------------riordino prima solide, poi fluide---------------------------------------
+
+	vector<Species> comodo;
+	vector<Species*> comodop;
+	
+	for (vector<Species>::iterator it=M_species.begin(); it!=M_species.end();it++){
+		size_type i(it-M_species.begin());
+		if (it->isfluid()==1){
+			comodo.push_back(M_species[i]);
+			M_species.erase(it);
+			--it;
+		}
+	}
+	for (size_type i=0; i<comodo.size(); ++i){
+		M_species.push_back(comodo[i]);
+	}
+
+	for (size_type i=0; i<M_species.size(); ++i){	
+		M_species[i].setposition(i);
+		M_species_pointer[i]=&M_species[i];
+		indexMap[M_species[i].nome()]=&M_species[i];
+	}
+	M_nspecie=M_species.size();
+}
+
+//-------------------------calcolo le condizioni iniziali---------------
+
+void Kem::setCini(){
+
+	ifstream myfile;
+	myfile.open(M_nomefile.c_str());
+	string line;
+	string line2;
+	line2.assign("RELATIVE ");
+		
+	//fra "relative" e "reaction 1" nel file .kem ci sono le quantità iniziali delle specie presenti al tempo zero	
+
+	int flag(0);
+	while(myfile.good() && flag==0){
+		getline (myfile,line);
+		if (strncmp(line.c_str(),line2.c_str(),line2.size())==0){
+			line2.clear();
+			line2.assign("REACTION  1");
+			while (flag==0){		
+			getline (myfile,line);
+			if (strncmp(line.c_str(),line2.c_str(),line2.size())==0) {
+				flag=1;
+			}
+			else
+			{
+			//leggo il nome della specie e il relativo numero
+			string nome, numero;
+			nome.append(line.c_str(),2,5);
+			int found=nome.find_last_of("ABCDEFGHILMNOPQRSTUVZX123456789");
+			nome.resize(found+1);
+			
+			numero.append(line.c_str(), 13,9);
+			//con il puntatore alla specie (sfrutto la mappa nome-puntatore) setto la c. iniziale
+			indexMap[nome]->setCiniSp(atof(numero.c_str()));
+			}
+			}
+		}
+	}
+}
+
+//---------------------------------distribuisce le concentrazioni iniziali sulle varie frazioni di ogni specie..........
+void Kem::setCiniCanali()
+{
+	for (size_type i=0; i<M_nspecie; ++i){
+		for (size_type j=0; j<M_species[i].getNcanali(); ++j){
+			M_CiniCanali.push_back(M_species[i].getCiniSp()*M_species[i].getCanali()[j]);
+		}
+	}
+
+}
+
+//----------------------------conta il numero di reazioni------------------------------------
+
+size_type Kem::contaReazioni(string nomefile)
+{
+	size_type nr(0);
+	ifstream myfile;
+	myfile.open(nomefile.c_str());
+	string line;
+	string line2;
+	line2.assign("REACTION ");
+
+	while(myfile.good()){
+		getline (myfile,line);
+		if (strncmp(line.c_str(),line2.c_str(),line2.size())==0){
+			nr=atoi(&line.c_str()[10]);
+		}
+	}
+	myfile.clear();              // forget we hit the end of file
+	myfile.seekg(0, std::ios::beg);   // move to the start of the file
+	M_nreazioni=nr;
+return nr;
+}
+
+
+//--------------------------------conta in quanti canali è divisa ogni specie chiamando il corrispondente metodo della clase species (?)
+size_type Kem::contaCanaliSpecie(){
+	size_type contatore(0);	
+	for (size_type i=0; i<M_species.size();++i){
+		contatore=contatore + M_species[i].getNcanali();
+	}
+	M_ncanaliS=contatore;
+	return contatore;
+}
+
+//------------------------------conta in quanti canali è divisa ogni reazione chiamando il corrispondente metodo della clase reaction (?)
+
+size_type Kem::contaCanaliReazioni(){
+	size_type contatore(0);	
+	for (size_type i=0; i<M_reazioni.size();++i){
+		contatore=contatore + M_reazioni[i].getNcanali();
+	}
+	M_ncanaliR=contatore;
+	return contatore;
+}
+
+//----------------------------calcola dove, nel vettore globale, inizia una specie, e dove inizia una reazione-
+//--può essere diverso dall'indice di specie e reazione perché alcune sono divise in canali quindi prendono più posti nel vettore
+
+void Kem::setGlobalIndeces(){
+	M_species[0].setGlobalIndex(0);
+	for (size_type i=1; i<M_nspecie; ++i){
+		M_species[i].setGlobalIndex(M_species[i-1].getGlobalIndex()+M_species[i-1].getNcanali());
+	}
+
+	M_reazioni[0].setGlobalIndex(0);
+	for (size_type i=1; i<M_nreazioni; ++i){
+		M_reazioni[i].setGlobalIndex(M_reazioni[i-1].getGlobalIndex()+M_reazioni[i-1].getNcanali());
+	}
+	
+}
+
+//-------------------------------legge dal file quello che serve per costruire la reazione iesima-------------
+
+React Kem::buildReact(string nomefile, string ss,size_type i){
+
+	React nuova;  
+		
+	ifstream myfile;
+	myfile.open(nomefile.c_str());
+	string line;
+	size_type found, found2,length;
+	while(myfile.good()){
+		getline (myfile,line);
+		if (strncmp(line.c_str(),ss.c_str(),ss.size())==0){  //ss è la riga del file in cui inizia la reazione iesima
+			getline (myfile,line);
+			getline (myfile,line);
+			string nome;
+			nome.append(line.c_str(),3,5);
+			found=nome.find_last_of("ABCDEFGHILMNOPQRSTUVZX123456789");
+			nome.resize(found+1);
+			
+			nuova.setReactant(nome);   //leggo e setto il nome del reagente
+						
+			getline (myfile,line);
+			nuova.setNprod(atoi(&line.c_str()[2]));  //leggo il numero di prodotti
+
+			getline (myfile,line);
+			size_type conta_prodotti=1;
+			while (conta_prodotti<=nuova.getNprod()){
+				found=line.find_last_of("ABCDEFGHILMNOPQRSTUVZX123456789"); 
+				line.resize(found+1);
+				found2=line.find_last_of(" ");
+				char provv[found-found2];
+				length=line.copy(provv, found-found2 , found2+1);
+				provv[length]='\0';
+				nuova.addProduct(string(provv));   //salvo i nomi dei prodotti
+				conta_prodotti+=1;
+				line.resize(found2+1);   
+			}
+
+			getline (myfile,line);
+			found=line.find_first_of("E");    
+			line.resize(found-1);
+			nuova.setNcanali(atoi(line.c_str()));
+			indexMap[nuova.getReactant()]->setNcanali(nuova.getNcanali());
+			if (nuova.getNcanali()>1){
+				indexMap[nuova.getReactant()]->setCanali(-1);   //il numero di canali in cui è divisa
+			}			
+			
+			for (size_type i=0;i<nuova.getNcanali();++i){  //e per ognuno energia di attivazione, frequency factor e frazione
+
+				getline (myfile,line);
+				found=line.find_last_of("0123456789");
+				line.resize(found+1);
+				found2=line.find_last_of(" ");
+				char provv[found-found2];
+				length=line.copy(provv, found-found2 , found2+1);
+				provv[length]='\0';
+				nuova.setEact(atof(provv));
+				line.resize(found2+1);
+
+				found=line.find_last_of("0123456789");
+				line.resize(found+1);
+				found2=line.find_last_of(" ");
+				char provv1[found-found2];
+				length=line.copy(provv1, found-found2 , found2+1);
+				provv1[length]='\0';
+				nuova.setAf(atof(provv1));
+				line.resize(found2+1);
+
+				found=line.find_last_of("0123456789");
+				line.resize(found+1);
+				found2=line.find_last_of(" ");
+				char provv2[found-found2];
+				length=line.copy(provv2, found-found2 , found2+1);
+				provv2[length]='\0';
+				nuova.setFr(atof(provv2));
+				indexMap[nuova.getReactant()]->setCanali(atof(provv2));
+				line.resize(found2+1);
+
+			}
+
+			getline (myfile,line);
+			getline (myfile,line);
+			getline (myfile,line);
+			getline (myfile,line);
+			getline (myfile,line);
+			getline (myfile,line);
+			//infine qui i coefficienti stechiometrici della reazione
+			for (size_type i=0;i<nuova.getNprod()+1;++i){
+				found=line.find_last_of("0123456789");
+				line.resize(found+1);
+				found2=line.find_last_of(" ");
+				char provv[found-found2];
+				length=line.copy(provv, found-found2 , found2+1);
+				provv[length]='\0';
+				nuova.setStcoefficients(atof(provv));
+				line.resize(found2+1);
+			}
+		}
+	}
+	
+	myfile.clear();              // forget we hit the end of file
+	myfile.seekg(0, std::ios::beg);   // move to the start of the file
+																																																																																																				
+	return nuova;
+}
+
+
+//------------------------qui riempio la matrice stechiometrica--------------------------
+
+void Kem::assemblyS(){
+
+//ridimensiono la S, Spiu e Smeno
+
+resize(M_S,this->contaCanaliSpecie(),this->contaCanaliReazioni());
+resize(M_Spiu,this->contaCanaliSpecie(),this->contaCanaliReazioni());
+resize(M_Smenotilde,this->contaCanaliSpecie(),this->contaCanaliReazioni());
+
+std::vector<double> somme(this->contaCanaliReazioni(),0.);  //vettore che contiene la somma per righe (o colonne?)
+
+for (size_type i=0; i<M_nreazioni; ++i){ //ciclo sulle reazioni
+
+	size_type ireact=indexMap[M_reazioni[i].getReactant()]->getGlobalIndex();  //posizione nel vettore globale
+	//lavoro sui reagenti
+	for (size_type j=0; j<M_reazioni[i].getNcanali();++j){
+		M_S(ireact+j, M_reazioni[i].getGlobalIndex()+j)=M_reazioni[i].getStRcoefficient();  //copio i coefficienti stechio nel posto giusto
+		M_Smenotilde(ireact+j, M_reazioni[i].getGlobalIndex()+j)=-M_reazioni[i].getStRcoefficient();
+		somme[M_reazioni[i].getGlobalIndex()+j]=somme[M_reazioni[i].getGlobalIndex()+j]-M_reazioni[i].getStRcoefficient(); 
+	}
+	//lavoro sui prodotti
+	for (size_type n=0; n<M_reazioni[i].getNprod();++n){
+		size_type iprod=indexMap[M_reazioni[i].getProduct(n)]->getposition();
+		for (size_type j=0; j<M_reazioni[i].getNcanali();++j){
+		M_S(M_species[iprod].getGlobalIndex(), M_reazioni[i].getGlobalIndex()+j)=M_reazioni[i].getStProdcoefficients()[n];
+		M_Spiu(M_species[iprod].getGlobalIndex(), M_reazioni[i].getGlobalIndex()+j)=M_reazioni[i].getStProdcoefficients()[n];	
+		somme[M_reazioni[i].getGlobalIndex()+j]=somme[M_reazioni[i].getGlobalIndex()+j]+M_reazioni[i].getStProdcoefficients()[n]; 	
+	}
+	}
+	
+}
+//qui riscalo la Smeno tilde secondo la formula del paper 
+for (size_type i=0; i<M_nreazioni; ++i){
+size_type ireact=indexMap[M_reazioni[i].getReactant()]->getGlobalIndex();
+	for (size_type j=0; j<M_reazioni[i].getNcanali();++j){
+		M_Smenotilde(ireact+j, M_reazioni[i].getGlobalIndex()+j)=2*M_Smenotilde(ireact+j, M_reazioni[i].getGlobalIndex()+j)/somme[M_reazioni[i].getGlobalIndex()+j];
+	}
+}
+
+
+}
+
+//------------------------faccio l'update di ogni specie chiamando il metodo corrispondente della classe species.
+
+void Kem::update_timehis(std::vector<double> & conc){
+for (size_type i=0; i<M_nspecie;++i){
+M_species[i].update_timeHis(conc);
+}
+}
+
+
+
+

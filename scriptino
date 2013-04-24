@@ -1,0 +1,6 @@
+make -j4
+./main
+cd out
+gnuplot storia
+gnuplot storia2
+cd ..

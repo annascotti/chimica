@@ -1,0 +1,68 @@
+#include "chimica.hpp"
+#include "reazione.hpp"
+#include "specie.hpp"
+#include <string>
+// #include <utility>
+#include "getfem/getfem_regular_meshes.h"
+#include "getfem/getfem_interpolation.h"
+#include "getfem/getfem_config.h"
+#include "getfem/getfem_assembling.h" // import assembly methods (and comp. of 
+#include "getfem/getfem_import.h"
+#include "getfem/getfem_export.h"     // export functions (save the solution in a file)
+#include "gmm/gmm.h"
+#include "gmm/gmm_inoutput.h"
+#include "gmm/gmm_MUMPS_interface.h"
+#include "gmm/gmm_superlu_interface.h"
+#include <iostream>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <map>
+
+#ifndef integrate_HPP_
+#define integrate_HPP_
+using namespace gmm;
+using namespace std;
+
+const double conv_t(pow(10,6)*24*365*60*60);   //definisco la conversione da Ma a secondi
+
+class TimeInt
+{
+public:
+	//! @name Constructor & Destructor
+	//@{
+		
+	//! Empty constructor
+	TimeInt();
+	
+	//questi sono i vari metodi di integrazione
+
+	void onestepEE(Kem *, std::vector<double>&,  std::vector<double>&);
+	void onestepEI(Kem *, std::vector<double>&,  std::vector<double>&);
+	void onestepRK2(Kem *, std::vector<double>&,  std::vector<double>&);
+	void onestepPATEE(Kem *, std::vector<double>&,  std::vector<double>&);
+	void onestepPATRK2(Kem *, std::vector<double>&,  std::vector<double>&);
+		
+	//setto tempo ini, fin e dt
+	void setTini(double t) {M_Tini=t;}
+	void setTfin(double t) {M_Tfin=t;}
+	void setDeltaT(double t) {M_DeltaT=t;}
+	void addstep(double tt) {M_tempi.push_back(tt);}
+
+	double getTini() const {return M_Tini;}
+	double getTfin() const {return M_Tfin;}
+	double getDeltaT() const {return M_DeltaT;}
+	vector<double> getTempi() const {return M_tempi;}
+	
+	void esportaTempi(string path);
+	
+private:	
+	double M_Tini;
+	double M_Tfin;
+	double M_DeltaT;
+	vector<double> M_tempi;
+};
+
+
+#endif /* GEOMTRIANGLE_HPP_ */
+
