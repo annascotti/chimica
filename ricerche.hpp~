@@ -1,0 +1,30 @@
+// i/o example
+
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <sstream>
+#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
+
+using namespace std;
+
+const string specie[]={"KER1","OLIO","KER2","CHX","CH4","KER3"};
+
+
+void chie(std::vector <string> &nomi, &std::vector<int> posizioni){
+for (int i=0;i<nomi.size();++i){
+
+for (int j=0;j<6;++j)
+{
+
+if (strcmp(nomi[i].c_str(),specie[j].c_str())==0){
+posizioni[i]=j;
+}
+}
+}
+
+}
+

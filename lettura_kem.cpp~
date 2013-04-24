@@ -1,0 +1,16 @@
+#include "lettura_kem.hpp"
+
+
+void chie(std::vector <string> &nomi, std::vector<int> &posizioni){
+for (int i=0;i<nomi.size();++i){
+
+for (int j=0;j<6;++j)
+{
+
+if (strcmp(nomi[i].c_str(),specie[j].c_str())==0){
+posizioni[i]=j;
+}
+}
+}
+
+}

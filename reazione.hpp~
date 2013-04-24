@@ -1,0 +1,39 @@
+#ifndef reazione_HPP_
+#define reazione_HPP_
+
+#include "specie.hpp"
+#include <string>
+#include "/home/anna/getfem-4.2/src/gmm/gmm.h"
+#include <iostream>
+#include <string>
+#include <iostream>
+#include <fstream>
+
+using namespace gmm;
+using namespace std;
+
+class React
+{
+public:
+	//! @name Constructor & Destructor
+	//@{
+		
+	//! Empty constructor
+	React();
+	
+	//! Destructor
+	virtual ~React();
+
+	void setReactant(string nome);
+	
+	
+	
+private:	
+	Species* M_reagente;
+	vector<Species*> M_prodotti;
+	
+};
+
+
+#endif 
+

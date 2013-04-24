@@ -1,0 +1,45 @@
+#include "reazione.hpp"
+#include "specie.hpp"
+#include <string>
+#include "/home/anna/getfem-4.2/src/gmm/gmm.h"
+#include <iostream>
+#include <string>
+#include <iostream>
+#include <fstream>
+
+#ifndef chimica_HPP_
+#define chimica_HPP_
+using namespace gmm;
+using namespace std;
+
+class Kem
+{
+public:
+	//! @name Constructor & Destructor
+	//@{
+		
+	//! Empty constructor
+	Kem();
+	
+	Kem(std::string);
+
+	//! Destructor
+	virtual ~Kem();
+	
+	inline gmm::size_type nReazioni() const {return M_nreazioni;}
+	
+private:	
+	
+	size_type M_nspecie;
+	size_type M_nreazioni;
+	vector<React> reazioni;
+	vector <Species> M_species;
+
+	size_type contaReazioni(std::string);
+	React buildReact(string , string ,size_type );
+	void setSpecies(string );
+};
+
+
+#endif /* GEOMTRIANGLE_HPP_ */
+

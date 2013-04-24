@@ -1,0 +1,55 @@
+*.KEM file made with KEMSEB Version 1.5                                         
+Kemfile for a TYP II/III Kerogen 
+SPECIES NAME AND EMPIRICAL FORMULA (C, H, O, N, S)
+  KER1       1.0000000  1.2600000  0.0000000  0.0000000  0.0000000          
+  OLIO       1.0000000  1.8800000  0.0000000  0.0000000  0.0000000          
+  KER2       1.0000000  0.5000000  0.0000000  0.0000000  0.0000000          
+  CHX        1.0000000  2.6200000  0.0000000  0.0000000  0.0000000          
+  CH4        1.0000000  4.0000000  0.0000000  0.0000000  0.0000000          
+  KER3       1.0000000  2.0000000  0.0000000  0.0000000  0.0000000          
+RELATIVE AMOUNT OF INITIAL TOC IN SPECIES          
+  KER1       0.2601175                     
+  KER3       0.7398824                     
+REACTION  1  
+  1 REACTANTS  
+   KER1  
+  3 PRODUCTS  
+   OLIO     CHX     KER2       
+ 17 ENERGIES  
+  1.90000e-03  8.54000e+12  4.00000e+04            
+  4.90000e-03  8.54000e+12  4.10000e+04            
+  1.00000e-02  8.54000e+12  4.20000e+04            
+  1.57000e-02  8.54000e+12  4.30000e+04            
+  1.50000e-02  8.54000e+12  4.40000e+04            
+  3.28000e-02  8.54000e+12  4.50000e+04            
+  1.79000e-02  8.54000e+12  4.60000e+04            
+  7.30000e-02  8.54000e+12  4.70000e+04            
+  2.05000e-02  8.54000e+12  4.80000e+04            
+  1.16800e-01  8.54000e+12  4.90000e+04            
+  1.84700e-01  8.54000e+12  5.00000e+04            
+  2.18700e-01  8.54000e+12  5.10000e+04            
+  1.40900e-01  8.54000e+12  5.20000e+04            
+  5.51000e-02  8.54000e+12  5.30000e+04            
+  1.74000e-02  8.54000e+12  5.40000e+04            
+  4.81000e-02  8.54000e+12  5.50000e+04            
+  2.66000e-02  8.54000e+12  5.80000e+04            
+STOICHIOMETRY CONSTRAINTS ARE MASS RATIOS FOR ALL REACTIONS
+  3.00000e-01  CHX/TOTAL OIL              
+FORMULA STOICHIOMETRY COEFFICIENTS             
+ -1.00000e+00  3.83137e-01  1.09090e-01  5.07773e-01            
+MASS STOICHIOMETRY COEFFICIENTS            
+ -1.00000e+00  4.01166e-01  1.20350e-01  4.78484e-01            
+REACTION  2  
+  1 REACTANTS  
+   OLIO  
+  3 PRODUCTS  
+   CHX     CH4     KER2       
+  1 ENERGIES  
+  1.00000e+00  3.00000e+14  5.70000e+04            
+STOICHIOMETRY CONSTRAINTS ARE MASS RATIOS FOR ALL REACTIONS
+  1.50000e-01  CH4/(CHX+CH4+H2)                 
+FORMULA STOICHIOMETRY COEFFICIENTS                
+ -1.00000e+00  5.14139e-01  8.28641e-02  4.02996e-01            
+MASS STOICHIOMETRY COEFFICIENTS            
+ -1.00000e+00  5.41716e-01  9.55969e-02  3.62688e-01            
+END  

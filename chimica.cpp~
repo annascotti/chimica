@@ -1,0 +1,97 @@
+#include "chimica.hpp"
+
+using namespace std;
+using namespace gmm;
+
+
+//----------------costruttore vuoto-------------
+
+Kem::Kem(): M_nspecie(0), M_nreazioni(0), M_species(0),M_species_pointer(0) {};
+
+//---------------costruttore------------------
+
+Kem::Kem(std::string nomefile){
+
+	M_nspecie=0;
+	vector<Species> M_species;
+	this->setSpecies(nomefile);
+	M_nreazioni=this->contaReazioni(nomefile);	
+	vector<React> reazioni;
+	for (size_type i=0; i<M_nreazioni;++i){
+		stringstream ss;
+		ss<<"REACTION  "<<i+1;
+		React nuova(this->buildReact(nomefile, ss.str(),i));
+	}
+}
+
+//distruttore
+Kem::~Kem() {};
+
+void Kem::setSpecies(string nomefile){
+	ifstream myfile;
+	myfile.open(nomefile.c_str());
+	string line;
+	string line2;
+	line2.assign("RELATIVE ");
+	getline (myfile,line);
+	getline (myfile,line);
+	getline (myfile,line);
+	int flag(0);
+	while(myfile.good() && flag==0){
+		getline (myfile,line);
+		
+		if (strncmp(line.c_str(),line2.c_str(),line2.size())==0){
+			flag=1;			
+		}
+		else{
+			string nome;
+			nome.append(line.c_str(),2,5);
+			int found=nome.find_last_of("ABCDEFGHILMNOPQRSTUVZX123456789");
+			nome.resize(found+1);
+			Species nuova(nome);
+			M_species.push_back(nuova);
+			M_species_pointer.push_back(&nuova);
+		}
+	}
+}
+
+size_type Kem::contaReazioni(string nomefile){
+	size_type nr;
+	ifstream myfile;
+	myfile.open(nomefile.c_str());
+	string line;
+	string line2;
+	line2.assign("REACTION ");
+
+	while(myfile.good()){
+		getline (myfile,line);
+		if (strncmp(line.c_str(),line2.c_str(),line2.size())==0){
+			nr=atoi(&line.c_str()[10]);
+		}
+	}
+	myfile.clear();              // forget we hit the end of file
+	myfile.seekg(0, std::ios::beg);   // move to the start of the file
+return nr;
+}
+
+React Kem::buildReact(string nomefile, string ss,size_type i){
+
+	React nuova;
+		
+	ifstream myfile;
+	myfile.open(nomefile.c_str());
+	string line;
+
+	while(myfile.good()){
+		getline (myfile,line);
+		if (strncmp(line.c_str(),ss.c_str(),ss.size())==0){
+			getline (myfile,line);
+			getline (myfile,line);
+			nuova.setReactant(line, M_species_pointer);
+		}
+	}
+	myfile.clear();              // forget we hit the end of file
+	myfile.seekg(0, std::ios::beg);   // move to the start of the file
+	return nuova;
+}
+

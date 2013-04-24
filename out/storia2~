@@ -1,0 +1,32 @@
+set term postscript eps color "
+set title "concentrazioni"
+set output "storia2.ps"
+
+set size 0.6,0.38
+
+
+set key left Left width -3
+
+set xlabel "time" offset 0,0.5
+set ylabel "C" offset 2.5,0
+set grid lw 3
+
+set style line 1 lt 1 linecolor rgb "#FF0000" linewidth 2
+set style line 2 lt 1 linecolor rgb "#CC00CC" linewidth 2
+set style line 3 lt 1 linecolor rgb "#336633" linewidth 2
+set style line 4 lt 1 linecolor rgb "#336633" linewidth 2
+
+set autoscale
+set xtics auto 
+
+plot \
+	"KER1" using 1:2 with line ls 1 title "KER1    "\
+	,"KER2" using 1:2 with line ls 2 title "KER2    "\
+	,"KER3" using 1:2 with line ls 3 title "KER3    "
+
+
+ 
+ 
+set terminal x11
+
+!ps2pdf -dEPSCrop storia2.eps storia2.pdf

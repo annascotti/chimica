@@ -1,0 +1,40 @@
+#ifndef specie_HPP_
+#define specie_HPP_
+
+#include "specie.hpp"
+#include <string>
+#include "/home/anna/getfem-4.2/src/gmm/gmm.h"
+#include <iostream>
+#include <string>
+#include <iostream>
+#include <fstream>
+
+using namespace gmm;
+using namespace std;
+
+class Species
+{
+public:
+	//! @name Constructor & Destructor
+	//@{
+		
+	//! Empty constructor
+	Species();
+
+	Species(string);
+	
+	//! Destructor
+	virtual ~Species();
+	
+	size_type which(nome, std::vector <string> &nomi);
+
+	
+private:	
+	
+	string M_nome;
+	
+};
+
+
+#endif /* GEOMTRIANGLE_HPP_ */
+

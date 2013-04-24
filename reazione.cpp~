@@ -1,0 +1,18 @@
+
+#include "chimica.hpp"
+
+using namespace std;
+using namespace gmm;
+
+
+//----------------costruttore vuoto-------------
+
+React::React(): M_reagente(), M_prodotti(0) {};
+
+//distruttore
+React::~React() {};
+
+void React::setReactant(string nome, vector<Species*>){
+cout << "e mo?  "<<nome<<endl;
+}
+

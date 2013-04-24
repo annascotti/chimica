@@ -1,0 +1,7 @@
+const string specie[]={"KER1","OLIO","KER2","CHX","CH4","KER3"};
+
+
+void chie(std::vector <string> & , std::vector<int> & );
+
+
+
